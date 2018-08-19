@@ -1,0 +1,46 @@
+from os.path import join
+import time
+
+import pygame
+
+from widgets.base.base_widget import BaseWidget
+from tools.image import aspect_scale
+
+
+class ClockWidget(BaseWidget):
+
+    def __init__(self, screen, width, heigth):
+        super(ClockWidget, self).__init__(screen, width, heigth)
+        self._image_path = join(self._widget_path, "date_time", "images")
+#       Images
+        self._clock_face = pygame.image.load(
+            join(self._image_path, "clock_face.png")).convert_alpha()
+        self._min_hand = pygame.image.load(
+            join(self._image_path, "min_hand.png")).convert_alpha()
+        self._hour_hand = pygame.image.load(
+            join(self._image_path, "hour_hand.png")).convert_alpha()
+        self._clock_face = aspect_scale(self._clock_face, self.get_size())
+        self._min_hand = aspect_scale(self._min_hand, self.get_size())
+        self._hour_hand = aspect_scale(self._hour_hand, self.get_size())
+#       Math stuff
+        self._min_tick_angle = 60.0/360.0
+        self._hour_tick_angle = 12.0/360.0
+
+    def update(self, screen):
+        ts = time.localtime()
+        hour = ts.tm_hour
+        min = ts.tm_min
+        size = screen.get_size()
+        width_center = int(size[0]/2)
+        min_angle = -int(min/self._min_tick_angle)
+        hour_angle = -int(hour/self._hour_tick_angle)-int(min/60.0*30)
+        r_hourhand = pygame.transform.rotate(self._hour_hand, hour_angle)
+        r_minhand = pygame.transform.rotate(self._min_hand, min_angle)
+        screen.blit(self._clock_face,
+                    (width_center-int(self._clock_face.get_width()/2), 0))
+        screen.blit(r_hourhand,
+                    (width_center-int(r_hourhand.get_width()/2),
+                     int(size[1]/2-r_hourhand.get_height()/2)))
+        screen.blit(r_minhand,
+                    (width_center-int(r_minhand.get_width()/2),
+                     int(size[1]/2-r_minhand.get_height()/2)))
